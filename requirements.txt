@@ -15,7 +15,6 @@ itsdangerous==2.1.2
 Jinja2==3.1.2
 jmespath==1.0.0
 MarkupSafe==2.1.1
-psycopg2==2.9.3
 pycparser==2.21
 PyJWT==2.4.0
 python-dateutil==2.8.2

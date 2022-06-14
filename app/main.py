@@ -29,6 +29,7 @@ app.config['UPLOAD_FOLDER'] = os.getenv("UPLOAD_FOLDER")
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv("SQLALCHEMY_DATABASE_URI")
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
+app.config['SERVER_NAME'] = "xn--3s8hl5f.tk"
 Session(app)
 s3 = boto3.client(
     's3',
@@ -109,7 +110,7 @@ def getFile():
     password = password.encode('utf-8')
     hash = base64.b64encode(password)
     hash = hash.decode('utf-8')
-    file_share = Share.query.filter(Share.file_id == request.form["id"], Share.shared_with == session.get("id"))
+    file_share = Share.query.filter(Share.file_id == request.form["id"], Share.shared_with == session.get("id")).first()
     if(data == None):
         return {"status": "error","message": "invalid Id"}
     elif  not session.get("id") and data.user_id != None:
@@ -138,9 +139,9 @@ def share():
     shared_with = request.form["shared_with"]
     if(not file_id or not shared_with):
         return {"status": "error","message":"file_id and shared_with are mandatory fielts"}
-    data = Share.query.filter(Share.shared_by == shared_by, Share.shared_with == shared_with)
+    data = Share.query.filter(Share.shared_by == shared_by, Share.shared_with == shared_with).first()
     if(data):
-        return {"message": "you have already shared this file", "status":"error"}
+        return {"message": f"you have already shared this file {data} {file_id}", "status":"error"}
     p = Share(file_id = file_id, shared_by=shared_by, shared_with = shared_with)
     db.session.add(p)
     db.session.commit()
@@ -150,8 +151,9 @@ def share():
 @app.route('/index',methods = ["GET"])
 def index():
     if  not session.get("id"):
-        redirect("/login")
-    return "Hello you are logged in"
+        return redirect("/login")
+    print(session.get("id"))
+    return f"Hello you are logged in {session.get('id')}"
 @app.route('/callback/auth',methods = ["GET"])
 def generateAuth():
     if  session.get("id"):
