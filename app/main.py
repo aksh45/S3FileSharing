@@ -14,6 +14,8 @@ import os
 from dotenv import load_dotenv
 import requests
 import jwt
+from sqlalchemy import or_
+
 load_dotenv()
 
 
@@ -94,6 +96,41 @@ def uploadFile():
     else:
         return {"message": "file is missing", "status": "error"}
 
+
+@app.route('/myfiles', methods = ['GET'])
+def fetchFiles():
+    if(not session.get("id")):
+        return redirect('/login')
+    query = db.select([
+        File.id,
+        File.file_name,
+        File.content_type,
+    ])
+    my_files = db.session.query(
+        File.id, File.file_name, File.content_type).filter(File.user_id == session.get("id")).all()
+    shared_with_me = db.session.query(
+        File.id, File.file_name, File.content_type).filter(Share.file_id == File.id, Share.shared_with == session.get("id")).all()
+    all_files = my_files + shared_with_me
+   
+    keys = ["id","fileName","contentType"]
+    res = []
+    for x in all_files:
+        res.append(dict(zip(keys, x)))
+    return {"files": res,"status": "success"}
+    
+
+@app.route('/sharedfiles', methods = ["GET"])
+def sharedFiles():
+    if(not session.get("id")):
+        return redirect('/login')
+    shared_files = db.session.query(File.file_name, File.content_type, User.email).filter(
+        Share.shared_by == session.get("id"), File.id == Share.file_id, User.id == Share.shared_with).all()
+    res = []
+    shared_file_fields = ["fileName","contentType","sharedWith"]
+    for x in shared_files:
+        res.append(dict(zip(shared_file_fields,x)))
+    return {"sharedFiles": res, "status": "success"}
+    
 @app.route('/login',methods = ['GET'])
 def login():
     if session.get("id"):
