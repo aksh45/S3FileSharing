@@ -83,17 +83,22 @@ class Share(db.Model):
 
 @app.route('/', methods=['POST'])
 def uploadFile():
+    
+   
     if "user_file" not in request.files:
         return "No user_file key in request.files"
+    
     file = request.files["user_file"]
-
+    
+   
     if file:
         file.filename = secure_filename(file.filename)
+    
         file.filename = f"{random.randrange(10**7,10**9)}_{file.filename}"
         output = file.save(os.path.join(
             app.config['UPLOAD_FOLDER'], file.filename))
         path = f"{os.path.join(app.config['UPLOAD_FOLDER'])}/{file.filename}"
-        password = request.form["password"] or ''
+        password = request.form.get("password") or ''
         password = password.encode('utf-8')
         hash = base64.b64encode(password)
         u_id = verifyJwtToken(request.headers.get('Authorization'))
