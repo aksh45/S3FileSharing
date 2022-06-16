@@ -191,7 +191,7 @@ def getFile():
         return {"status": "error", "message": "invalid Id"}
     elif not u_id and data.user_id != None:
         return {"status": "Failed", "message": "You are not authorised to download this file"}
-    elif(data.user_id != u_id and file_share == None):
+    elif(data.user_id != u_id and file_share == None and data.user_id != None):
         return {"status": "Failed", "message": "This file is neither owned by you nor shared with you"}
 
     file_dict = json.loads(str(data))
